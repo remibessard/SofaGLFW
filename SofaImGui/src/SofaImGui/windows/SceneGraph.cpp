@@ -316,6 +316,31 @@ namespace windows
                                 ImGui::Unindent();
                             }
                         }
+                        for (auto vectordata : clickedObject->getVectorDataFields())
+                        {
+                            ImGui::Indent();
+                            if (vectordata.size())
+                            {
+                                std::string vectordataName = vectordata[0]->m_name.c_str();
+                                vectordataName.pop_back();
+                                const bool isOpen = ImGui::CollapsingHeader(vectordataName.c_str());
+                                if (ImGui::IsItemHovered())
+                                {
+                                    ImGui::BeginTooltip();
+                                    ImGui::TextDisabled(vectordata[0]->getHelp().c_str());
+                                    ImGui::TextDisabled("Type: %s", vectordata[0]->getValueTypeString().c_str());
+                                    ImGui::EndTooltip();
+                                }
+                                if (isOpen)
+                                {
+                                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+                                    ImGui::TextWrapped(vectordata[0]->getHelp().c_str());
+                                    ImGui::PopStyleColor();
+                                    sofaimgui::showWidgets(vectordata);
+                                }
+                            }
+                            ImGui::Unindent();
+                        }
                         ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
                         if (ImGui::CollapsingHeader("Links"))
                         {
@@ -430,6 +455,31 @@ namespace windows
                             }
                             ImGui::EndTabItem();
                         }
+                    }
+                    for (auto vectordata : component->getVectorDataFields())
+                    {
+                        ImGui::Indent();
+                        if (vectordata.size())
+                        {
+                            std::string vectordataName = vectordata[0]->m_name.c_str();
+                            vectordataName.pop_back();
+                            const bool isOpen = ImGui::CollapsingHeader(vectordataName.c_str());
+                            if (ImGui::IsItemHovered())
+                            {
+                                ImGui::BeginTooltip();
+                                ImGui::TextDisabled(vectordata[0]->getHelp().c_str());
+                                ImGui::TextDisabled("Type: %s", vectordata[0]->getValueTypeString().c_str());
+                                ImGui::EndTooltip();
+                            }
+                            if (isOpen)
+                            {
+                                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+                                ImGui::TextWrapped(vectordata[0]->getHelp().c_str());
+                                ImGui::PopStyleColor();
+                                sofaimgui::showWidgets(vectordata);
+                            }
+                        }
+                        ImGui::Unindent();
                     }
                     // ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
                     if (ImGui::BeginTabItem("Links"))
