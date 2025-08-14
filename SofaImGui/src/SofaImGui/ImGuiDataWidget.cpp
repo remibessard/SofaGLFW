@@ -548,6 +548,39 @@ void DataWidget<std::map<std::string, type::vector<float> > >::showWidget(MyData
     showWidgetT(data);
 }
 
+
+template<class TReal>
+void showWidgetT(Data<std::map<std::string, std::pair<type::vector<TReal>, type::vector<TReal> > > >&data)
+{
+    const auto& label = data.getName();
+    const auto id = data.getName() + data.getOwner()->getPathName();
+    if (ImPlot::BeginPlot((label + "##" + id).c_str()))
+    {
+        ImPlot::SetupLegend(ImPlotLocation_South, ImPlotLegendFlags_Outside);
+        for (const auto& [chartLabel, values] : data.getValue())
+        {
+            if (values.first.size() == 1)
+                ImPlot::PlotScatter(chartLabel.c_str(), &values.first.back(), &values.second.back(), 1);
+            else if (values.first.size() == values.second.size())
+                ImPlot::PlotLine(chartLabel.c_str(), values.first.data(), values.second.data(), values.first.size());
+            }
+        ImPlot::EndPlot();
+    }
+}
+
+template<>
+void DataWidget<std::map<std::string, std::pair<type::vector<double>, type::vector<double> > > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+template<>
+void DataWidget<std::map<std::string, std::pair<type::vector<float>, type::vector<float> > > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+
 /***********************************************************************************************************************
  * OptionsGroup
  **********************************************************************************************************************/
@@ -817,6 +850,8 @@ const bool dw_vector_tri = DataWidgetFactory::Add<type::vector<topology::Triangl
 
 const bool dw_map_vectorf = DataWidgetFactory::Add<std::map<std::string, type::vector<float> > >();
 const bool dw_map_vectord = DataWidgetFactory::Add<std::map<std::string, type::vector<double> > >();
+const bool dw_map_pairvectorsf = DataWidgetFactory::Add<std::map<std::string, std::pair<type::vector<float>, type::vector<float> > > >();
+const bool dw_map_pairvectorsd = DataWidgetFactory::Add<std::map<std::string, std::pair<type::vector<double>, type::vector<double> > > >();
 
 const bool dw_optionsGroup = DataWidgetFactory::Add<helper::OptionsGroup>();
 
