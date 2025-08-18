@@ -23,6 +23,7 @@
 #include <SofaImGui/ImGuiDataWidget.h>
 #include <sofa/core/objectmodel/Base.h>
 
+#include <IconsFontAwesome6.h>
 #include <implot.h>
 #include <sofa/helper/map.h>
 #include <sofa/helper/OptionsGroup.h>
@@ -571,6 +572,25 @@ void DataWidget<std::pair<double, std::pair<double, double> > >::showWidget(MyDa
     showWidgetT(data);
 }
 
+template<class TReal>
+void showWidgetsT(core::objectmodel::vectorData<std::pair<TReal, std::pair<TReal, TReal> > >& data)
+{
+    showSliderWidget(data);
+}
+
+template<>
+void VectorDataWidget< std::pair<float, std::pair<float, float> > >::showWidgets(MyData& data)
+{
+    showWidgetsT(data);
+}
+
+template<>
+void VectorDataWidget< std::pair<double, std::pair<double, double> > >::showWidgets(MyData& data)
+{
+    showWidgetsT(data);
+}
+
+
 /***********************************************************************************************************************
  * OptionsGroup
  **********************************************************************************************************************/
@@ -850,6 +870,9 @@ const bool dw_rgbacolor = DataWidgetFactory::Add<type::RGBAColor>();
 
 const bool dw_sliderminmax_d = DataWidgetFactory::Add<std::pair<double, std::pair<double, double>>>();
 const bool dw_sliderminmax_f = DataWidgetFactory::Add<std::pair<float, std::pair<float, float>>>();
+
+const bool vdw_slidernamevalminmax_d = VectorDataWidgetFactory::Add<std::pair<double, std::pair<double, double>>>();
+const bool vdw_slidernamevalminmax_f = VectorDataWidgetFactory::Add<std::pair<float, std::pair<float, float>>>();
 
 const bool dw_constraintmatrixVec2 = DataWidgetFactory::Add<linearalgebra::CompressedRowSparseMatrixConstraint<defaulttype::Vec2Types::Deriv>>();
 const bool dw_constraintmatrixVec3 = DataWidgetFactory::Add<linearalgebra::CompressedRowSparseMatrixConstraint<defaulttype::Vec3Types::Deriv>>();

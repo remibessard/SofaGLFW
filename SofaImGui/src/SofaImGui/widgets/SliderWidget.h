@@ -21,6 +21,7 @@
 ******************************************************************************/
 #pragma once
 #include <sofa/core/objectmodel/Data.h>
+#include <sofa/core/objectmodel/vectorData.h>
 
 namespace sofaimgui
 {
@@ -38,9 +39,115 @@ void showSliderWidget(sofa::Data<std::pair<Real, std::pair<Real, Real> > >& data
 
     ImGui::SliderFloat((label + "##" + id).c_str(), &changeableValue, minmax.first, minmax.second);
 
+    ///HACK using data group parameter to access child information
+    if (!data.getGroup().empty())
+    {
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::TextDisabled("parent of %s", data.getGroup().c_str());
+            ImGui::EndTooltip();
+        }
+    }
+
     if (changeableValue != initialValue)
     {
         sofa::helper::WriteAccessor(data)->first = changeableValue;
+    }
+}
+
+template<class Real>
+void showSliderWidget(sofa::core::objectmodel::vectorData<std::pair<Real, std::pair<Real, Real> > >& data)
+{
+    if (!data.getSize())
+        return;
+    const auto& label = data.getName(); //data[0]->getOwner()->getName();
+    ImGui::Text("Group %s (%d elements)", label, data.size());
+    ImGui::SameLine();
+
+    static bool enable_groupSliders = false;  // default value, the button is disabled
+    static float b = 1.0f;
+    static float c = 0.5f;
+    static int i = 3;
+
+    if (enable_groupSliders)
+    {
+        ImGui::PushID(" toggleSlidersGrouping ");
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(i / 7.0f, b, b));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i / 7.0f, b, b));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i / 7.0f, c, c));
+        ImGui::Button(ICON_FA_LINK);
+        if (ImGui::IsItemClicked(0))
+        {
+            enable_groupSliders = false;
+        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopID();
+    }
+    else
+    {
+        ImGui::Button(ICON_FA_LINK_SLASH);
+        if (ImGui::IsItemClicked(0))
+        {
+            enable_groupSliders = true;
+        }
+    }
+    bool sliderChanged = false;
+    float sharedValue = 0.0f;
+
+    if (enable_groupSliders)
+    {
+        // First pass: detect and assign shared value
+        for (sofa::Data<std::pair<Real, std::pair<Real, Real>>>* slData : data)
+        {
+            sofa::helper::WriteAccessor<sofa::Data<std::pair<Real, std::pair<Real, Real>>>> dataPairAccessor = sofa::helper::WriteAccessor(*slData);
+            const Real initialValue = dataPairAccessor.ref().first;
+            sharedValue = initialValue;
+            break;
+        }
+
+        for (sofa::Data< std::pair<Real, std::pair<Real, Real> > >* slData : data)
+        {
+            sofa::helper::WriteAccessor<sofa::Data<std::pair<Real, std::pair<Real, Real> > > > dataPairAccessor = sofa::helper::WriteAccessor(*slData);
+
+            const Real initialValue = dataPairAccessor.ref().first;
+            float changeableValue = initialValue;
+
+            std::pair<Real, Real> minmax = dataPairAccessor.ref().second;
+
+            const auto& slLabel = slData->getName();
+            const auto slId = slLabel + slData->getOwner()->getPathName();
+
+            if (ImGui::SliderFloat((slLabel + "##" + slId).c_str(), &changeableValue, minmax.first, minmax.second))
+            {
+                sliderChanged = true;
+                sharedValue = changeableValue;
+            }
+            if (!slData->getGroup().empty())
+            {
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::TextDisabled("parent of %s", slData->getGroup().c_str());
+                    ImGui::EndTooltip();
+                }
+            }
+        }
+        if (sliderChanged)
+        {
+            for (sofa::Data<std::pair<Real, std::pair<Real, Real>>>* slData : data)
+            {
+                sofa::helper::WriteAccessor<sofa::Data<std::pair<Real, std::pair<Real, Real>>>> dataPairAccessor = sofa::helper::WriteAccessor(*slData);
+                dataPairAccessor.wref().first = sharedValue;
+            }
+        }
+    }
+    else
+    {
+        for (sofa::Data< std::pair<Real, std::pair<Real, Real> > >* slData : data)
+        {
+            showSliderWidget(*slData);
+        }
     }
 }
 
