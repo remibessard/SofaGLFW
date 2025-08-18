@@ -264,7 +264,7 @@ namespace windows
                     if (ImGui::CollapsingHeader((ICON_FA_CUBE "  " + clickedObject->getName()).c_str(), &areDataDisplayed))
                     {
                         ImGui::Indent();
-                        std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
+                        std::unordered_map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
                         for (auto* data : clickedObject->getDataFields())
                         {
                             groupMap[data->getGroup()].push_back(data);
@@ -293,7 +293,7 @@ namespace windows
 
                                         if (data->getParent())
                                         {
-                                            const auto linkPath = data->getLinkPath();
+                                            const auto linkPath = data->getParent()->getLinkPath();
                                             if (!linkPath.empty())
                                             {
                                                 ImGui::TextWrapped(linkPath.c_str());
@@ -402,7 +402,7 @@ namespace windows
             if (ImGui::Begin((ICON_FA_CUBE "  " + component->getName() + " (" + component->getPathName() + ")").c_str(), &isOpen, componentWindowFlags))
             {
                 ImGui::PopStyleColor();
-                std::map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
+                std::unordered_map<std::string, std::vector<sofa::core::BaseData*> > groupMap;
                 for (auto* data : component->getDataFields())
                 {
                     groupMap[data->getGroup()].push_back(data);
@@ -432,7 +432,7 @@ namespace windows
 
                                     if (data->getParent())
                                     {
-                                        const auto linkPath = data->getLinkPath();
+                                        const auto linkPath = data->getParent()->getLinkPath();
                                         if (!linkPath.empty())
                                         {
                                             ImGui::TextWrapped(linkPath.c_str());
