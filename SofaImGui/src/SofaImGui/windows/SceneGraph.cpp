@@ -318,9 +318,9 @@ namespace windows
                         }
                         for (auto vectordata : clickedObject->getVectorDataFields())
                         {
-                            ImGui::Indent();
                             if (vectordata.size())
                             {
+                                ImGui::Indent();
                                 std::string vectordataName = vectordata[0]->m_name.c_str();
                                 vectordataName.pop_back();
                                 const bool isOpen = ImGui::CollapsingHeader(vectordataName.c_str());
@@ -338,8 +338,8 @@ namespace windows
                                     ImGui::PopStyleColor();
                                     sofaimgui::showWidgets(vectordata);
                                 }
+                                ImGui::Unindent();
                             }
-                            ImGui::Unindent();
                         }
                         ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
                         if (ImGui::CollapsingHeader("Links"))
@@ -456,32 +456,36 @@ namespace windows
                             ImGui::EndTabItem();
                         }
                     }
-                    for (auto vectordata : component->getVectorDataFields())
+                    if (component->getVectorDataFields().size() && ImGui::BeginTabItem("VectorDatas"))
                     {
-                        ImGui::Indent();
-                        if (vectordata.size())
+                        for (auto vectordata : component->getVectorDataFields())
                         {
-                            std::string vectordataName = vectordata[0]->m_name.c_str();
-                            vectordataName.pop_back();
-                            const bool isOpen = ImGui::CollapsingHeader(vectordataName.c_str());
-                            if (ImGui::IsItemHovered())
+                            if (vectordata.size())
                             {
-                                ImGui::BeginTooltip();
-                                ImGui::TextDisabled(vectordata[0]->getHelp().c_str());
-                                ImGui::TextDisabled("Type: %s", vectordata[0]->getValueTypeString().c_str());
-                                ImGui::EndTooltip();
-                            }
-                            if (isOpen)
-                            {
-                                ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-                                ImGui::TextWrapped(vectordata[0]->getHelp().c_str());
-                                ImGui::PopStyleColor();
-                                sofaimgui::showWidgets(vectordata);
+                                //ImGui::Indent();
+                                std::string vectordataName = vectordata[0]->m_name.c_str();
+                                vectordataName.pop_back();
+                                const bool isOpen = ImGui::CollapsingHeader(vectordataName.c_str());
+                                if (ImGui::IsItemHovered())
+                                {
+                                    ImGui::BeginTooltip();
+                                    ImGui::TextDisabled(vectordata[0]->getHelp().c_str());
+                                    ImGui::TextDisabled("Type: %s", vectordata[0]->getValueTypeString().c_str());
+                                    ImGui::EndTooltip();
+                                }
+                                if (isOpen)
+                                {
+                                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+                                    ImGui::TextWrapped(vectordata[0]->getHelp().c_str());
+                                    ImGui::PopStyleColor();
+                                    sofaimgui::showWidgets(vectordata);
+                                }
+                                //ImGui::Unindent();
                             }
                         }
-                        ImGui::Unindent();
+                        ImGui::EndTabItem();
                     }
-                    // ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
+                    ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
                     if (ImGui::BeginTabItem("Links"))
                     {
                         for (const auto* link : component->getLinks())
