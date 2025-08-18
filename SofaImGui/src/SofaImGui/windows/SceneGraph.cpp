@@ -160,6 +160,8 @@ namespace windows
 
                             if (ImGui::IsItemClicked())
                             {
+                                ImGui::SetScrollHereY();
+
                                 if (ImGui::IsMouseDoubleClicked(0))
                                 {
                                     componentToOpen.insert(object);
@@ -242,8 +244,10 @@ namespace windows
 
                 static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody;
 
-                ImVec2 outer_size = ImVec2(0.0f, static_cast<bool>(clickedObject) * ImGui::GetTextLineHeightWithSpacing() * 20);
-                if (ImGui::BeginTable("sceneGraphTable", 2, flags, outer_size))
+                static float tableHeight = 0.0;
+                ImVec2 outer_size = ImVec2(0.0f, tableHeight);
+                ImGui::BeginChild("tableRegion", outer_size, ImGuiChildFlags_None);
+                if (ImGui::BeginTable("sceneGraphTable", 2, flags))
                 {
                     ImGui::TableSetupScrollFreeze(0, 1); // Make top row always visible
                     ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
@@ -254,12 +258,23 @@ namespace windows
 
                     ImGui::EndTable();
                 }
+                ImGui::EndChild();
+                ImGui::InvisibleButton("##splitter", ImVec2(-1, 2.0f)); // Invisible button used to adjust scene graoh table vertical height
+                if (ImGui::IsItemHovered())
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+                if (ImGui::IsItemActive())
+                {
+                    // Mouse drag adjusts height
+                    tableHeight += ImGui::GetIO().MouseDelta.y;
+                    if (tableHeight < (ImGui::GetTextLineHeightWithSpacing() * 10.0f)) tableHeight = ImGui::GetTextLineHeightWithSpacing() * 10.0f; // min clamp
+                }
 
                 static bool areDataDisplayed;
                 areDataDisplayed = clickedObject != nullptr;
                 if (clickedObject != nullptr)
                 {
-                    ImGui::Separator();
+                    if (tableHeight == 0) tableHeight = static_cast<bool>(clickedObject) * ImGui::GetTextLineHeightWithSpacing() * 30;
+                    //ImGui::Separator();
                     ImGui::SetNextItemOpen(true, ImGuiCond_Appearing);
                     if (ImGui::CollapsingHeader((ICON_FA_CUBE "  " + clickedObject->getName()).c_str(), &areDataDisplayed))
                     {
