@@ -30,6 +30,7 @@
 #include <SofaImGui/widgets/DisplayFlagsWidget.h>
 #include <SofaImGui/widgets/LinearSpringWidget.h>
 #include <SofaImGui/widgets/MaterialWidget.h>
+#include <SofaImGui/widgets/SliderWidget.h>
 #include <SofaImGui/widgets/RigidMass.h>
 
 namespace sofaimgui
@@ -549,6 +550,28 @@ void DataWidget<std::map<std::string, type::vector<float> > >::showWidget(MyData
 }
 
 /***********************************************************************************************************************
+ * Slider (value, pair of min,max )
+ **********************************************************************************************************************/
+
+template<class TReal>
+void showWidgetT(Data<std::pair<TReal, std::pair<TReal, TReal> > >&data)
+{
+    showSliderWidget(data);
+}
+
+template<>
+void DataWidget<std::pair<float, std::pair<float, float> > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+template<>
+void DataWidget<std::pair<double, std::pair<double, double> > >::showWidget(MyData& data)
+{
+    showWidgetT(data);
+}
+
+/***********************************************************************************************************************
  * OptionsGroup
  **********************************************************************************************************************/
 
@@ -824,6 +847,9 @@ const bool dw_optionsGroup = DataWidgetFactory::Add<helper::OptionsGroup>();
 const bool dw_selectable_items = DataWidgetFactory::Add<helper::BaseSelectableItem>();
 
 const bool dw_rgbacolor = DataWidgetFactory::Add<type::RGBAColor>();
+
+const bool dw_sliderminmax_d = DataWidgetFactory::Add<std::pair<double, std::pair<double, double>>>();
+const bool dw_sliderminmax_f = DataWidgetFactory::Add<std::pair<float, std::pair<float, float>>>();
 
 const bool dw_constraintmatrixVec2 = DataWidgetFactory::Add<linearalgebra::CompressedRowSparseMatrixConstraint<defaulttype::Vec2Types::Deriv>>();
 const bool dw_constraintmatrixVec3 = DataWidgetFactory::Add<linearalgebra::CompressedRowSparseMatrixConstraint<defaulttype::Vec3Types::Deriv>>();
