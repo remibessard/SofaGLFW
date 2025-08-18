@@ -22,6 +22,7 @@
 #pragma once
 #include <SofaImGui/config.h>
 #include <sofa/core/objectmodel/Data.h>
+#include <sofa/core/objectmodel/vectorData.h>
 
 #include <unordered_map>
 
@@ -123,6 +124,132 @@ inline void SOFAIMGUI_API showWidget(sofa::core::objectmodel::BaseData& data)
     else
     {
         BaseDataWidget::showWidgetAsText(data);
+    }
+}
+
+/***********************************************************************************************************************
+ * VectorDataWidget
+ **********************************************************************************************************************/
+
+struct BaseVectorDataWidget
+{
+    virtual ~BaseVectorDataWidget() = default;
+    virtual void showWidgets(sofa::type::vector < sofa::core::objectmodel::BaseData*>&) = 0;
+};
+
+template<class T>
+struct VectorDataWidget : BaseVectorDataWidget
+{
+    using MyData = sofa::core::objectmodel::vectorData<T>;
+    static std::string getType()
+    {
+        static const std::string type = []()
+            {
+                MyData d;
+                return d.getValueTypeString();
+            }();
+        return type;
+    }
+
+    void showWidgets(sofa::type::vector < sofa::core::objectmodel::BaseData*>& data) override
+    {
+        //component, std::string const& name, std::string const& help, DataEngineDataType dataEngineDataType = DataEngineDataType::DataEngineNothing, const T& defaultValue = T())
+        MyData* vecData = new MyData(data[0]->getOwner(), data[0]->getOwner()->getName(), data[0]->getData()->getHelp());
+        for (auto dataItem : data)
+        {
+            if (sofa::core::objectmodel::Data<T>* d = dynamic_cast<sofa::core::objectmodel::Data<T>*>(dataItem))
+            {
+                vecData->add(d);
+            }
+            else
+            {
+                const void* rawPtr = dataItem->getValueVoidPtr();
+                if (const T* castedPtr = static_cast<const T*>(rawPtr))
+                {
+                    showWidgets(data, castedPtr);
+                }
+                else
+                {
+                    showWidgetsAsText(data);
+                }
+                return;
+            }
+        }
+        if (vecData->getSize())
+            showWidgets(*vecData);
+    }
+
+    void showWidgets(MyData & data)
+    {
+        showWidgetsAsText(data);
+    }
+
+    ~VectorDataWidget() override = default;
+
+protected:
+    /**
+    * This method is called when the Data cannot be dynamic_cast from a BaseData.
+    * Instead, the BaseData is provided, as well as the object.
+    */
+    void showWidgets(sofa::type::vector < sofa::core::objectmodel::BaseData*>&data, const T * object)
+    {
+        SOFA_UNUSED(object);
+        showWidgetsAsText(data);
+    }
+
+    void showWidgetsAsText(MyData & data)
+    {
+        for (auto dataItem : data)
+        {
+            BaseDataWidget::showWidgetAsText(*dataItem);
+        }
+    }
+    void showWidgetsAsText(sofa::type::vector < sofa::core::objectmodel::BaseData*>&data)
+    {
+        for (auto dataItem : data)
+        {
+            BaseDataWidget::showWidgetAsText(*dataItem);
+        }
+    }
+};
+
+struct VectorDataWidgetFactory
+{
+    template<class T>
+    static bool Add()
+    {
+        using Widget = VectorDataWidget<T>;
+        const auto it = factoryMap.emplace(Widget::getType(), std::make_unique<Widget>());
+        msg_error_when(!it.second, "VectorDataWidgetFactory") << "Cannot add vector widget " << Widget::getType() << " into the factory";
+        return it.second;
+    }
+
+    static BaseVectorDataWidget * GetWidget(sofa::type::vector < sofa::core::objectmodel::BaseData* >&data)
+    {
+        if (data.size())
+        {
+            const auto it = factoryMap.find(data[0]->getValueTypeString());
+            if (it != factoryMap.end())
+                return it->second.get();
+            }
+        return nullptr;
+    }
+
+private:
+    inline static std::unordered_map<std::string, std::unique_ptr<BaseVectorDataWidget> > factoryMap;
+};
+
+inline void showWidgets(sofa::type::vector < sofa::core::objectmodel::BaseData* >&data)
+{
+    auto* widget = VectorDataWidgetFactory::GetWidget(data);
+    if (widget)
+    {
+        widget->showWidgets(data);
+    }
+    else
+    {
+        for (auto dataItem : data)
+            BaseDataWidget::showWidgetAsText(*dataItem);
     }
 }
 
